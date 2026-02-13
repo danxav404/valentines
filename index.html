@@ -17,11 +17,12 @@
       :root {
         --bg: #ffffff;
         --ink: #0b0b0b;
-        --muted: #6b6b6b;
+        --muted: rgba(0, 0, 0, 0.55);
         --pink: #ff5c8a;
         --pink-hover: #ff3f76;
-        --card: rgba(0, 0, 0, 0.04);
-        --border: rgba(0, 0, 0, 0.14);
+        --border: rgba(0, 0, 0, 0.22);
+        --border-strong: rgba(0, 0, 0, 0.3);
+        --shadow: 0 14px 35px rgba(0, 0, 0, 0.1);
       }
 
       * {
@@ -40,54 +41,118 @@
         font-family: "Cute Font", system-ui, -apple-system, Segoe UI, Roboto,
           sans-serif;
         letter-spacing: 0.2px;
-        overflow: hidden; /* helps the no button not cause scrollbars */
+        overflow: hidden;
+      }
+
+      /* floating heart background layer */
+      .bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .heart {
+        position: absolute;
+        font-size: var(--size, 22px);
+        opacity: 0.5;
+        transform: translate3d(0, 0, 0) scale(1);
+        animation: drift var(--dur, 9s) linear infinite,
+          pulse var(--pulse, 2.8s) ease-in-out infinite;
+        will-change: transform;
+        filter: saturate(1.05);
+      }
+
+      @keyframes drift {
+        from {
+          transform: translate3d(var(--x, 0), 110vh, 0) scale(var(--s, 1));
+        }
+        to {
+          transform: translate3d(var(--x2, 0), -18vh, 0) scale(var(--s, 1));
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.35;
+        }
+        50% {
+          opacity: 0.55;
+        }
       }
 
       .wrap {
+        position: relative;
+        z-index: 2;
         height: 100%;
         display: grid;
         place-items: center;
-        padding: 24px;
+        padding: 26px;
       }
 
+      /* paper card */
       .card {
-        width: min(520px, 92vw);
+        width: min(640px, 94vw);
         text-align: center;
-        padding: 26px 22px 22px;
-        border: 1px solid var(--border);
-        border-radius: 18px;
+        padding: 28px 26px 24px;
+        border: 2px solid var(--border-strong);
+        border-radius: 22px;
         background: #fff;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow);
+        position: relative;
+        animation: pop 280ms ease-out both;
+      }
+
+      /* subtle "paper edge" highlight */
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 18px;
+        border: 1px dashed rgba(0, 0, 0, 0.12);
+        pointer-events: none;
+      }
+
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .art {
         display: grid;
         place-items: center;
-        margin: 4px auto 10px;
+        margin: 2px auto 10px;
       }
 
       .art img {
-        width: min(260px, 70vw);
+        width: min(280px, 72vw);
         height: auto;
         display: block;
         user-select: none;
         -webkit-user-drag: none;
-        image-rendering: auto;
-        filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.08));
+        filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.09));
       }
 
       h1 {
-        margin: 10px 0 2px;
-        font-size: 54px;
-        line-height: 0.95;
+        margin: 10px 0 4px;
+        font-size: 58px;
+        line-height: 0.92;
         font-weight: 400;
         text-transform: lowercase;
       }
 
       p {
-        margin: 0 0 14px;
-        font-size: 28px;
-        line-height: 1.1;
+        margin: 0 0 16px;
+        font-size: 30px;
+        line-height: 1.05;
         color: var(--muted);
         text-transform: lowercase;
       }
@@ -96,21 +161,21 @@
         display: flex;
         gap: 12px;
         justify-content: center;
-        margin-top: 12px;
+        margin-top: 10px;
       }
 
       button {
         font-family: inherit;
-        font-size: 30px;
+        font-size: 32px;
         line-height: 1;
-        padding: 14px 20px;
-        border-radius: 14px;
+        padding: 14px 22px;
+        border-radius: 16px;
         border: 1px solid transparent;
         background: transparent;
         cursor: pointer;
-        transition: transform 160ms ease, box-shadow 160ms ease,
-          background-color 160ms ease, filter 160ms ease;
         user-select: none;
+        transition: transform 180ms ease, box-shadow 180ms ease,
+          background-color 180ms ease, filter 180ms ease, width 180ms ease;
       }
 
       button:active {
@@ -120,22 +185,23 @@
       .yes {
         background: var(--pink);
         color: #fff;
-        border-color: rgba(0, 0, 0, 0.08);
-        box-shadow: 0 8px 18px rgba(255, 92, 138, 0.28);
+        border-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 22px rgba(255, 92, 138, 0.26);
+        transform: scale(var(--yesScale, 1));
       }
 
       .yes:hover {
         background: var(--pink-hover);
-        box-shadow: 0 10px 26px rgba(255, 63, 118, 0.34);
-        transform: translateY(-1px) scale(1.03);
+        box-shadow: 0 12px 30px rgba(255, 63, 118, 0.34);
+        transform: translateY(-1px) scale(calc(var(--yesScale, 1) * 1.03));
       }
 
-      /* the "no" lives in a floating layer so it can move around */
+      /* evasive no button layer */
       .no-layer {
         position: fixed;
         inset: 0;
-        pointer-events: none; /* only the button itself should get clicks */
-        z-index: 10;
+        z-index: 5;
+        pointer-events: none;
       }
 
       .no {
@@ -143,65 +209,21 @@
         position: absolute;
         background: #fff;
         color: var(--ink);
-        border: 1px solid rgba(0, 0, 0, 0.35);
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-      }
-
-      .no:hover {
-        filter: brightness(0.99);
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        transition: left 240ms ease, top 240ms ease, transform 180ms ease,
+          opacity 180ms ease;
+        will-change: left, top, transform;
       }
 
       .tiny {
-        margin-top: 10px;
+        margin-top: 12px;
         font-size: 24px;
         color: rgba(0, 0, 0, 0.45);
       }
 
-      /* poof */
-      .poof {
-        position: fixed;
-        width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        border: 2px solid rgba(0, 0, 0, 0.25);
-        pointer-events: none;
-        transform: translate(-50%, -50%);
-        animation: poof 420ms ease-out forwards;
-      }
-
-      @keyframes poof {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(0.6);
-        }
-        20% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(2.3);
-        }
-      }
-
-      /* subtle entrance */
-      .card {
-        animation: pop 280ms ease-out both;
-      }
-
-      @keyframes pop {
-        from {
-          opacity: 0;
-          transform: translateY(8px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      /* success state */
       .success h1 {
-        font-size: 58px;
+        font-size: 62px;
       }
 
       .success .buttons {
@@ -210,16 +232,19 @@
         filter: grayscale(0.2);
       }
 
-      /* mobile tweak */
       @media (max-width: 420px) {
+        .card {
+          width: min(620px, 94vw);
+          padding: 24px 18px 18px;
+        }
         h1 {
-          font-size: 48px;
+          font-size: 50px;
         }
         p {
-          font-size: 26px;
+          font-size: 28px;
         }
         button {
-          font-size: 28px;
+          font-size: 30px;
           padding: 12px 18px;
         }
       }
@@ -227,28 +252,22 @@
   </head>
 
   <body>
+    <!-- dynamic heart background -->
+    <div class="bg" id="bg" aria-hidden="true"></div>
+
     <div class="wrap">
       <main class="card" id="card">
         <div class="art">
           <!-- put your cat image next to this html and rename to cat.png (or change src) -->
-          <img src="cat.png" alt="cute cat with flowers" />
+          <img src="cat.png" alt="cute cat holding flowers" />
         </div>
 
         <h1 id="title">will you be my valentine?</h1>
         <p id="subtitle">please choose wisely</p>
 
-        <div class="buttons" aria-label="choices">
+        <div class="buttons">
           <button class="yes" id="yesBtn" type="button">yes</button>
-          <!-- note: the visible "no" button is rendered in the floating layer below -->
-          <button
-            class="no"
-            id="noBtnProxy"
-            type="button"
-            style="display: none"
-            aria-hidden="true"
-          >
-            no
-          </button>
+          <span style="display:none">no</span>
         </div>
 
         <div class="tiny" id="hint">tip: the no button is shy</div>
@@ -256,12 +275,11 @@
     </div>
 
     <!-- floating layer for the evasive no button -->
-    <div class="no-layer" id="noLayer" aria-hidden="false">
+    <div class="no-layer" id="noLayer">
       <button class="no" id="noBtn" type="button">no</button>
     </div>
 
     <script>
-      // barebones state
       const yesBtn = document.getElementById("yesBtn");
       const noBtn = document.getElementById("noBtn");
       const noLayer = document.getElementById("noLayer");
@@ -269,8 +287,14 @@
       const title = document.getElementById("title");
       const subtitle = document.getElementById("subtitle");
       const hint = document.getElementById("hint");
+      const bg = document.getElementById("bg");
 
       let noPresses = 0;
+      let yesScale = 1;
+
+      // hover timer so it doesn't instantly block clicks
+      let hoverStart = null;
+      let hoverTimer = null;
 
       const noMessages = [
         "no",
@@ -280,6 +304,7 @@
         "pls don't 🥺",
         "that one is illegal",
         "wrong answer!!!",
+        "stoppppp",
       ];
 
       function clamp(n, min, max) {
@@ -291,7 +316,6 @@
       }
 
       function placeNoButton(initial = false) {
-        // keep inside viewport with padding
         const padding = 16;
         const rect = noBtn.getBoundingClientRect();
         const vw = window.innerWidth;
@@ -300,15 +324,12 @@
         const maxLeft = vw - rect.width - padding;
         const maxTop = vh - rect.height - padding;
 
-        // start near the card, then become chaotic
         let left, top;
 
         if (initial) {
-          // place roughly under the card center-ish
-          left = clamp(vw * 0.5 + rand(-70, 70), padding, maxLeft);
-          top = clamp(vh * 0.62 + rand(-30, 40), padding, maxTop);
+          left = clamp(vw * 0.54 + rand(-80, 80), padding, maxLeft);
+          top = clamp(vh * 0.66 + rand(-40, 50), padding, maxTop);
         } else {
-          // random anywhere, with a little preference away from the yes button region
           left = clamp(rand(padding, maxLeft), padding, maxLeft);
           top = clamp(rand(padding, maxTop), padding, maxTop);
         }
@@ -317,23 +338,13 @@
         noBtn.style.top = `${top}px`;
       }
 
-      function poofAt(x, y) {
-        const p = document.createElement("div");
-        p.className = "poof";
-        p.style.left = `${x}px`;
-        p.style.top = `${y}px`;
-        document.body.appendChild(p);
-        p.addEventListener("animationend", () => p.remove());
-      }
-
       function updateNoText() {
-        // change message every 2–3 presses
+        // every 2–3 presses
         const shouldChange =
           noPresses === 1 || noPresses % 2 === 0 || noPresses % 3 === 0;
 
         if (!shouldChange) return;
 
-        // cycle but keep "no" early
         const idx = clamp(
           Math.floor(noPresses / 2),
           0,
@@ -342,71 +353,118 @@
         noBtn.textContent = noMessages[idx];
       }
 
-      function evade(e) {
-        noPresses++;
+      function bumpYes() {
+        // subtle growth, capped
+        yesScale = clamp(1 + noPresses * 0.03, 1, 1.35);
+        yesBtn.style.setProperty("--yesScale", yesScale.toFixed(3));
+      }
 
-        // poof at current center
-        const r = noBtn.getBoundingClientRect();
-        poofAt(r.left + r.width / 2, r.top + r.height / 2);
-
-        updateNoText();
-
-        // after ~8 presses, become extra dramatic
-        if (noPresses >= 8) {
-          noBtn.style.transform = `rotate(${rand(-6, 6)}deg) scale(${rand(
-            0.96,
-            1.04
-          )})`;
-          hint.textContent = "ok stop bullying the no button";
+      function evade(reason = "click") {
+        // smooth translation via left/top transitions
+        if (reason === "hover") {
+          hint.textContent = "it ran away because you stared at it";
         }
 
-        // after ~10 presses, vanish briefly
-        if (noPresses >= 10 && noPresses % 3 === 1) {
-          noBtn.style.opacity = "0";
-          setTimeout(() => {
-            noBtn.style.opacity = "1";
-          }, 600);
+        // after enough bullying, add tiny rotation drama
+        if (noPresses >= 8) {
+          noBtn.style.transform = `rotate(${rand(-7, 7)}deg)`;
+        } else {
+          noBtn.style.transform = `rotate(${rand(-2, 2)}deg)`;
         }
 
         placeNoButton(false);
 
-        // never allow a real "no"
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
+        // reset rotation shortly after so it stays clean
+        setTimeout(() => {
+          noBtn.style.transform = "rotate(0deg)";
+        }, 220);
       }
 
-      // clicks + touch
-      noBtn.addEventListener("pointerdown", evade);
+      // click / tap: should always register before moving
+      noBtn.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-      // also evade when the cursor gets too close (optional but cute)
-      // comment out if you want only click-based evasion
-      document.addEventListener("mousemove", (e) => {
-        const r = noBtn.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const dx = e.clientX - cx;
-        const dy = e.clientY - cy;
-        const dist = Math.hypot(dx, dy);
+        noPresses++;
+        updateNoText();
+        bumpYes();
+        evade("click");
+        return false;
+      });
 
-        // gentle flee radius
-        if (dist < 70) {
-          placeNoButton(false);
-        }
+      // hover-based evasion with time limit (5s)
+      noBtn.addEventListener("pointerenter", () => {
+        hoverStart = Date.now();
+        if (hoverTimer) clearTimeout(hoverTimer);
+
+        hoverTimer = setTimeout(() => {
+          // if still hovered after 5s, run away
+          try {
+            // check if pointer is still over the button
+            // (works because pointerenter fired; if they left earlier we'll clear timer)
+            evade("hover");
+          } catch {}
+        }, 5000);
+      });
+
+      noBtn.addEventListener("pointerleave", () => {
+        hoverStart = null;
+        if (hoverTimer) clearTimeout(hoverTimer);
+        hoverTimer = null;
       });
 
       yesBtn.addEventListener("click", () => {
         card.classList.add("success");
-        title.textContent = "YAYAYAYAYYAYAYAYA!!!";
+        title.textContent = "yay!!! 💖";
         subtitle.textContent = "you just made me the happiest person ever";
         hint.textContent = "valentine secured";
-        // retire the no button
         noLayer.style.display = "none";
       });
 
+      // ------- background hearts -------
+      function makeHearts() {
+        // remove existing
+        bg.innerHTML = "";
+
+        const count = Math.min(70, Math.max(40, Math.floor(window.innerWidth / 16)));
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement("div");
+          s.className = "heart";
+          s.textContent = "🩷";
+
+          // randomize per-heart vars
+          const size = Math.floor(rand(16, 30));
+          const dur = rand(8, 16).toFixed(2);
+          const pulse = rand(2.2, 3.6).toFixed(2);
+          const startX = rand(-10, 110).toFixed(2) + "vw";
+          const endX = (parseFloat(startX) + rand(-10, 10)).toFixed(2) + "vw";
+          const scale = rand(0.85, 1.25).toFixed(2);
+          const delay = rand(-12, 0).toFixed(2) + "s"; // stagger by starting mid-animation
+
+          s.style.setProperty("--size", size + "px");
+          s.style.setProperty("--dur", dur + "s");
+          s.style.setProperty("--pulse", pulse + "s");
+          s.style.setProperty("--x", startX);
+          s.style.setProperty("--x2", endX);
+          s.style.setProperty("--s", scale);
+          s.style.animationDelay = delay + ", " + delay;
+
+          // random horizontal placement baseline (used by --x/--x2)
+          // small vertical staggering via delay covers the rest
+          bg.appendChild(s);
+        }
+      }
+
       // initial placement after layout
-      window.addEventListener("load", () => placeNoButton(true));
-      window.addEventListener("resize", () => placeNoButton(true));
+      window.addEventListener("load", () => {
+        placeNoButton(true);
+        makeHearts();
+      });
+
+      window.addEventListener("resize", () => {
+        placeNoButton(true);
+        makeHearts();
+      });
     </script>
   </body>
 </html>
