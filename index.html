@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>be my valentine</title>
+    <title>be my valentine?</title>
 
     <!-- cute font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -270,8 +270,8 @@
           <img id="catImg" src="cat.png" alt="cute cat holding flowers" />
         </div>
 
-        <h1 id="title">will you be my valentine?</h1>
-        <p id="subtitle">please choose wisely</p>
+        <h1 id="title">chrissy, will you be my valentine?</h1>
+        <p id="subtitle">please choose wisely !</p>
 
         <div class="buttons">
           <button class="yes" id="yesBtn" type="button">yes</button>
@@ -310,11 +310,11 @@
         "no",
         "are you sure??",
         "don't click me!",
-        "try the other one",
-        "pls don't 🥺",
-        "that one is illegal",
-        "wrong answer!!!",
-        "stoppppp",
+        "try the other button",
+        "CMON MANNNNN",
+        "clicking this is now illegal",
+        "WRONG ANSWER 🚨🚨",
+        "okay lil bro stawppp",
       ];
 
       function clamp(n, min, max) {
@@ -386,10 +386,10 @@
 
       function maybeGrumpy() {
         if (grumpyMode) return;
-        if (noPresses >= 5) {
+        if (noPresses >= 10) {
           grumpyMode = true;
           swapCat("grumpycat.png");
-          hint.textContent = "nahhh stop messing with me";
+          hint.textContent = "NAHHHHH STOP MESSING WITH ME LIL BRO";
         }
       }
 
@@ -398,7 +398,7 @@
 
         if (reason === "hover") {
           hint.textContent = grumpyMode
-            ? "nahhh stop messing with me"
+            ? "NAHHHHH STOP MESSING WITH ME LIL BRO"
             : "it ran away because you stared at it";
         }
 
@@ -488,11 +488,11 @@
         accepted = true;
 
         card.classList.add("success");
-        title.textContent = "yay!!! 💖";
-        subtitle.textContent = "you just made me the happiest person ever";
-        hint.textContent = "valentine secured";
+        title.textContent = "YAYAYYAYAYAYAYYAYAA 💐";
+        subtitle.textContent = "i love you so much ammus :) happy v-day!!";
+        hint.textContent = "valentine secured 💌";
 
-        // swap cat to happy dancing gif
+        // swap cat to happy gif
         swapCat("happycat.gif");
 
         // background to rose pink
