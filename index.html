@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>chrissy, be my valentine?</title>
+    <title>be my valentine</title>
 
     <!-- cute font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,12 +15,11 @@
 
     <style>
       :root {
-        --bg: #ffffff;
+        --pageBg: #ffffff;
         --ink: #0b0b0b;
         --muted: rgba(0, 0, 0, 0.55);
         --pink: #ff5c8a;
         --pink-hover: #ff3f76;
-        --border: rgba(0, 0, 0, 0.22);
         --border-strong: rgba(0, 0, 0, 0.3);
         --shadow: 0 14px 35px rgba(0, 0, 0, 0.1);
       }
@@ -36,12 +35,13 @@
 
       body {
         margin: 0;
-        background: var(--bg);
+        background: var(--pageBg);
         color: var(--ink);
         font-family: "Cute Font", system-ui, -apple-system, Segoe UI, Roboto,
           sans-serif;
         letter-spacing: 0.2px;
         overflow: hidden;
+        transition: background-color 650ms ease;
       }
 
       /* floating heart background layer */
@@ -139,6 +139,12 @@
         user-select: none;
         -webkit-user-drag: none;
         filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.09));
+        transition: opacity 380ms ease;
+        opacity: 1;
+      }
+
+      .art img.fading {
+        opacity: 0;
       }
 
       h1 {
@@ -175,7 +181,7 @@
         cursor: pointer;
         user-select: none;
         transition: transform 180ms ease, box-shadow 180ms ease,
-          background-color 180ms ease, filter 180ms ease, width 180ms ease;
+          background-color 180ms ease, filter 180ms ease;
       }
 
       button:active {
@@ -220,6 +226,7 @@
         margin-top: 12px;
         font-size: 24px;
         color: rgba(0, 0, 0, 0.45);
+        text-transform: lowercase;
       }
 
       .success h1 {
@@ -258,16 +265,17 @@
     <div class="wrap">
       <main class="card" id="card">
         <div class="art">
-          <!-- put your cat image next to this html and rename to cat.png (or change src) -->
-          <img src="cat.png" alt="cute cat holding flowers" />
+          <!-- put these next to this html:
+               cat.png, grumpycat.png, happycat.gif -->
+          <img id="catImg" src="cat.png" alt="cute cat holding flowers" />
         </div>
 
-        <h1 id="title">chrissy, will you be my valentine?</h1>
-        <p id="subtitle">please choose wisely gng!</p>
+        <h1 id="title">will you be my valentine?</h1>
+        <p id="subtitle">please choose wisely</p>
 
         <div class="buttons">
           <button class="yes" id="yesBtn" type="button">yes</button>
-          <span style="display:none">no</span>
+          <span style="display: none">no</span>
         </div>
 
         <div class="tiny" id="hint">tip: the no button is shy</div>
@@ -288,12 +296,14 @@
       const subtitle = document.getElementById("subtitle");
       const hint = document.getElementById("hint");
       const bg = document.getElementById("bg");
+      const catImg = document.getElementById("catImg");
 
       let noPresses = 0;
       let yesScale = 1;
+      let grumpyMode = false;
+      let accepted = false;
 
       // hover timer so it doesn't instantly block clicks
-      let hoverStart = null;
       let hoverTimer = null;
 
       const noMessages = [
@@ -313,6 +323,22 @@
 
       function rand(min, max) {
         return Math.random() * (max - min) + min;
+      }
+
+      function swapCat(src) {
+        // fade out, swap src, fade in
+        catImg.classList.add("fading");
+        setTimeout(() => {
+          catImg.src = src;
+          // ensure it fades back in after the new asset loads (gif/png)
+          const onLoad = () => {
+            catImg.classList.remove("fading");
+            catImg.removeEventListener("load", onLoad);
+          };
+          catImg.addEventListener("load", onLoad);
+          // fallback in case cached and load doesn't fire as expected
+          setTimeout(() => catImg.classList.remove("fading"), 80);
+        }, 260);
       }
 
       function placeNoButton(initial = false) {
@@ -354,92 +380,89 @@
       }
 
       function bumpYes() {
-        // subtle growth, capped
         yesScale = clamp(1 + noPresses * 0.03, 1, 1.35);
         yesBtn.style.setProperty("--yesScale", yesScale.toFixed(3));
       }
 
+      function maybeGrumpy() {
+        if (grumpyMode) return;
+        if (noPresses >= 5) {
+          grumpyMode = true;
+          swapCat("grumpycat.png");
+          hint.textContent = "nahhh stop messing with me";
+        }
+      }
+
       function evade(reason = "click") {
-        // smooth translation via left/top transitions
+        if (accepted) return;
+
         if (reason === "hover") {
-          hint.textContent = "it ran away because you stared at it";
+          hint.textContent = grumpyMode
+            ? "nahhh stop messing with me"
+            : "it ran away because you stared at it";
         }
 
-        // after enough bullying, add tiny rotation drama
-        if (noPresses >= 8) {
-          noBtn.style.transform = `rotate(${rand(-7, 7)}deg)`;
-        } else {
-          noBtn.style.transform = `rotate(${rand(-2, 2)}deg)`;
-        }
+        // a tiny bit of drama
+        const wobble = noPresses >= 8 ? rand(-7, 7) : rand(-2, 2);
+        noBtn.style.transform = `rotate(${wobble}deg)`;
 
         placeNoButton(false);
 
-        // reset rotation shortly after so it stays clean
         setTimeout(() => {
           noBtn.style.transform = "rotate(0deg)";
         }, 220);
       }
 
-      // click / tap: should always register before moving
+      // click / tap: register, then move
       noBtn.addEventListener("pointerdown", (e) => {
+        if (accepted) return;
         e.preventDefault();
         e.stopPropagation();
 
         noPresses++;
         updateNoText();
         bumpYes();
+        maybeGrumpy();
         evade("click");
         return false;
       });
 
       // hover-based evasion with time limit (5s)
       noBtn.addEventListener("pointerenter", () => {
-        hoverStart = Date.now();
+        if (accepted) return;
         if (hoverTimer) clearTimeout(hoverTimer);
 
         hoverTimer = setTimeout(() => {
-          // if still hovered after 5s, run away
-          try {
-            // check if pointer is still over the button
-            // (works because pointerenter fired; if they left earlier we'll clear timer)
-            evade("hover");
-          } catch {}
+          evade("hover");
         }, 5000);
       });
 
       noBtn.addEventListener("pointerleave", () => {
-        hoverStart = null;
         if (hoverTimer) clearTimeout(hoverTimer);
         hoverTimer = null;
       });
 
-      yesBtn.addEventListener("click", () => {
-        card.classList.add("success");
-        title.textContent = "yay!!! 💖";
-        subtitle.textContent = "you just made me the happiest person ever";
-        hint.textContent = "valentine secured";
-        noLayer.style.display = "none";
-      });
-
-      // ------- background hearts -------
-      function makeHearts() {
-        // remove existing
+      // ---------- hearts ----------
+      function makeHearts(emoji = "🩷") {
         bg.innerHTML = "";
+        const count = Math.min(
+          70,
+          Math.max(40, Math.floor(window.innerWidth / 16))
+        );
 
-        const count = Math.min(70, Math.max(40, Math.floor(window.innerWidth / 16)));
         for (let i = 0; i < count; i++) {
           const s = document.createElement("div");
           s.className = "heart";
-          s.textContent = "🩷";
+          s.textContent = emoji;
 
-          // randomize per-heart vars
           const size = Math.floor(rand(16, 30));
           const dur = rand(8, 16).toFixed(2);
           const pulse = rand(2.2, 3.6).toFixed(2);
           const startX = rand(-10, 110).toFixed(2) + "vw";
-          const endX = (parseFloat(startX) + rand(-10, 10)).toFixed(2) + "vw";
+          const endX =
+            (parseFloat(startX) + rand(-10, 10)).toFixed(2) + "vw";
           const scale = rand(0.85, 1.25).toFixed(2);
-          const delay = rand(-12, 0).toFixed(2) + "s"; // stagger by starting mid-animation
+          const delay = rand(-12, 0).toFixed(2) + "s";
 
           s.style.setProperty("--size", size + "px");
           s.style.setProperty("--dur", dur + "s");
@@ -449,21 +472,49 @@
           s.style.setProperty("--s", scale);
           s.style.animationDelay = delay + ", " + delay;
 
-          // random horizontal placement baseline (used by --x/--x2)
-          // small vertical staggering via delay covers the rest
           bg.appendChild(s);
         }
       }
 
-      // initial placement after layout
+      function switchHeartsToWhite() {
+        // swap existing hearts (keeps their positions/animations)
+        const hearts = bg.querySelectorAll(".heart");
+        hearts.forEach((h) => (h.textContent = "🤍"));
+      }
+
+      // ---------- yes click ----------
+      yesBtn.addEventListener("click", () => {
+        if (accepted) return;
+        accepted = true;
+
+        card.classList.add("success");
+        title.textContent = "yay!!! 💖";
+        subtitle.textContent = "you just made me the happiest person ever";
+        hint.textContent = "valentine secured";
+
+        // swap cat to happy dancing gif
+        swapCat("happycat.gif");
+
+        // background to rose pink
+        document.documentElement.style.setProperty("--pageBg", "#ff5c8a");
+
+        // hearts -> white
+        switchHeartsToWhite();
+
+        // retire no button
+        noLayer.style.display = "none";
+      });
+
+      // init
       window.addEventListener("load", () => {
         placeNoButton(true);
-        makeHearts();
+        makeHearts("🩷");
       });
 
       window.addEventListener("resize", () => {
         placeNoButton(true);
-        makeHearts();
+        // if they already accepted, keep white hearts
+        makeHearts(accepted ? "🤍" : "🩷");
       });
     </script>
   </body>
