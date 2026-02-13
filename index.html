@@ -168,6 +168,8 @@
         gap: 12px;
         justify-content: center;
         margin-top: 10px;
+        position: relative;
+        z-index: 3; /* stay above hearts */
       }
 
       button {
@@ -270,12 +272,13 @@
           <img id="catImg" src="cat.png" alt="cute cat holding flowers" />
         </div>
 
-        <h1 id="title">chrissy, will you be my valentine?</h1>
+        <h1 id="title">will you be my valentine?</h1>
         <p id="subtitle">please choose wisely !</p>
 
-        <div class="buttons">
+        <!-- ✅ now both buttons are in the card initially -->
+        <div class="buttons" id="btnRow">
           <button class="yes" id="yesBtn" type="button">yes</button>
-          <span style="display: none">no</span>
+          <button class="no" id="noBtnInline" type="button">no</button>
         </div>
 
         <div class="tiny" id="hint">tip: the no button is shy</div>
@@ -289,7 +292,8 @@
 
     <script>
       const yesBtn = document.getElementById("yesBtn");
-      const noBtn = document.getElementById("noBtn");
+      const noBtn = document.getElementById("noBtn"); // floating evasive one
+      const noBtnInline = document.getElementById("noBtnInline"); // initial inline one
       const noLayer = document.getElementById("noLayer");
       const card = document.getElementById("card");
       const title = document.getElementById("title");
@@ -326,21 +330,19 @@
       }
 
       function swapCat(src) {
-        // fade out, swap src, fade in
         catImg.classList.add("fading");
         setTimeout(() => {
           catImg.src = src;
-          // ensure it fades back in after the new asset loads (gif/png)
           const onLoad = () => {
             catImg.classList.remove("fading");
             catImg.removeEventListener("load", onLoad);
           };
           catImg.addEventListener("load", onLoad);
-          // fallback in case cached and load doesn't fire as expected
           setTimeout(() => catImg.classList.remove("fading"), 80);
         }, 260);
       }
 
+      // place the floating "no" button. initial placement puts it exactly where the inline one is.
       function placeNoButton(initial = false) {
         const padding = 16;
         const rect = noBtn.getBoundingClientRect();
@@ -353,8 +355,10 @@
         let left, top;
 
         if (initial) {
-          left = clamp(vw * 0.54 + rand(-80, 80), padding, maxLeft);
-          top = clamp(vh * 0.66 + rand(-40, 50), padding, maxTop);
+          // position floating no exactly where the inline no is
+          const r = noBtnInline.getBoundingClientRect();
+          left = clamp(r.left, padding, maxLeft);
+          top = clamp(r.top, padding, maxTop);
         } else {
           left = clamp(rand(padding, maxLeft), padding, maxLeft);
           top = clamp(rand(padding, maxTop), padding, maxTop);
@@ -365,7 +369,6 @@
       }
 
       function updateNoText() {
-        // every 2–3 presses
         const shouldChange =
           noPresses === 1 || noPresses % 2 === 0 || noPresses % 3 === 0;
 
@@ -402,7 +405,6 @@
             : "it ran away because you stared at it";
         }
 
-        // a tiny bit of drama
         const wobble = noPresses >= 8 ? rand(-7, 7) : rand(-2, 2);
         noBtn.style.transform = `rotate(${wobble}deg)`;
 
@@ -413,7 +415,32 @@
         }, 220);
       }
 
-      // click / tap: register, then move
+      // ✅ when user clicks the INLINE no, immediately swap to the floating one at the same position
+      function handoffInlineNo(e) {
+        if (accepted) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // hide inline button so it looks like it "escaped"
+        noBtnInline.style.visibility = "hidden";
+
+        // ensure floating one starts exactly there
+        placeNoButton(true);
+
+        // treat as a normal "no press"
+        noPresses++;
+        updateNoText();
+        bumpYes();
+        maybeGrumpy();
+
+        // then run away smoothly
+        evade("click");
+        return false;
+      }
+
+      noBtnInline.addEventListener("pointerdown", handoffInlineNo);
+
+      // click / tap on floating no: register, then move
       noBtn.addEventListener("pointerdown", (e) => {
         if (accepted) return;
         e.preventDefault();
@@ -427,7 +454,7 @@
         return false;
       });
 
-      // hover-based evasion with time limit (5s)
+      // hover-based evasion with time limit (5s) - floating button only
       noBtn.addEventListener("pointerenter", () => {
         if (accepted) return;
         if (hoverTimer) clearTimeout(hoverTimer);
@@ -477,7 +504,6 @@
       }
 
       function switchHeartsToWhite() {
-        // swap existing hearts (keeps their positions/animations)
         const hearts = bg.querySelectorAll(".heart");
         hearts.forEach((h) => (h.textContent = "🤍"));
       }
@@ -489,31 +515,26 @@
 
         card.classList.add("success");
         title.textContent = "YAYAYYAYAYAYAYYAYAA 💐";
-        subtitle.textContent = "i love you so much ammus :) happy v-day!!";
+        subtitle.textContent = "i love you so much :) happy v-day!!";
         hint.textContent = "valentine secured 💌";
 
-        // swap cat to happy gif
         swapCat("happycat.gif");
-
-        // background to rose pink
         document.documentElement.style.setProperty("--pageBg", "#ff5c8a");
-
-        // hearts -> white
         switchHeartsToWhite();
 
-        // retire no button
         noLayer.style.display = "none";
       });
 
       // init
       window.addEventListener("load", () => {
+        // start floating "no" at the inline button position, but keep inline visible until first click
         placeNoButton(true);
         makeHearts("🩷");
       });
 
       window.addEventListener("resize", () => {
+        // if inline is still visible, keep floating aligned with it
         placeNoButton(true);
-        // if they already accepted, keep white hearts
         makeHearts(accepted ? "🤍" : "🩷");
       });
     </script>
