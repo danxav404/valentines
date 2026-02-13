@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>be my valentine</title>
+
+    <!-- cute font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cute+Font&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --ink: #0b0b0b;
+        --muted: #6b6b6b;
+        --pink: #ff5c8a;
+        --pink-hover: #ff3f76;
+        --card: rgba(0, 0, 0, 0.04);
+        --border: rgba(0, 0, 0, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Cute Font", system-ui, -apple-system, Segoe UI, Roboto,
+          sans-serif;
+        letter-spacing: 0.2px;
+        overflow: hidden; /* helps the no button not cause scrollbars */
+      }
+
+      .wrap {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(520px, 92vw);
+        text-align: center;
+        padding: 26px 22px 22px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .art {
+        display: grid;
+        place-items: center;
+        margin: 4px auto 10px;
+      }
+
+      .art img {
+        width: min(260px, 70vw);
+        height: auto;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+        image-rendering: auto;
+        filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.08));
+      }
+
+      h1 {
+        margin: 10px 0 2px;
+        font-size: 54px;
+        line-height: 0.95;
+        font-weight: 400;
+        text-transform: lowercase;
+      }
+
+      p {
+        margin: 0 0 14px;
+        font-size: 28px;
+        line-height: 1.1;
+        color: var(--muted);
+        text-transform: lowercase;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 12px;
+      }
+
+      button {
+        font-family: inherit;
+        font-size: 30px;
+        line-height: 1;
+        padding: 14px 20px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease,
+          background-color 160ms ease, filter 160ms ease;
+        user-select: none;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      .yes {
+        background: var(--pink);
+        color: #fff;
+        border-color: rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 18px rgba(255, 92, 138, 0.28);
+      }
+
+      .yes:hover {
+        background: var(--pink-hover);
+        box-shadow: 0 10px 26px rgba(255, 63, 118, 0.34);
+        transform: translateY(-1px) scale(1.03);
+      }
+
+      /* the "no" lives in a floating layer so it can move around */
+      .no-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none; /* only the button itself should get clicks */
+        z-index: 10;
+      }
+
+      .no {
+        pointer-events: auto;
+        position: absolute;
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid rgba(0, 0, 0, 0.35);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      }
+
+      .no:hover {
+        filter: brightness(0.99);
+      }
+
+      .tiny {
+        margin-top: 10px;
+        font-size: 24px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+
+      /* poof */
+      .poof {
+        position: fixed;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 2px solid rgba(0, 0, 0, 0.25);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        animation: poof 420ms ease-out forwards;
+      }
+
+      @keyframes poof {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.6);
+        }
+        20% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(2.3);
+        }
+      }
+
+      /* subtle entrance */
+      .card {
+        animation: pop 280ms ease-out both;
+      }
+
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* success state */
+      .success h1 {
+        font-size: 58px;
+      }
+
+      .success .buttons {
+        opacity: 0.25;
+        pointer-events: none;
+        filter: grayscale(0.2);
+      }
+
+      /* mobile tweak */
+      @media (max-width: 420px) {
+        h1 {
+          font-size: 48px;
+        }
+        p {
+          font-size: 26px;
+        }
+        button {
+          font-size: 28px;
+          padding: 12px 18px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <main class="card" id="card">
+        <div class="art">
+          <!-- put your cat image next to this html and rename to cat.png (or change src) -->
+          <img src="cat.png" alt="cute cat with flowers" />
+        </div>
+
+        <h1 id="title">will you be my valentine?</h1>
+        <p id="subtitle">please choose wisely</p>
+
+        <div class="buttons" aria-label="choices">
+          <button class="yes" id="yesBtn" type="button">yes</button>
+          <!-- note: the visible "no" button is rendered in the floating layer below -->
+          <button
+            class="no"
+            id="noBtnProxy"
+            type="button"
+            style="display: none"
+            aria-hidden="true"
+          >
+            no
+          </button>
+        </div>
+
+        <div class="tiny" id="hint">tip: the no button is shy</div>
+      </main>
+    </div>
+
+    <!-- floating layer for the evasive no button -->
+    <div class="no-layer" id="noLayer" aria-hidden="false">
+      <button class="no" id="noBtn" type="button">no</button>
+    </div>
+
+    <script>
+      // barebones state
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const noLayer = document.getElementById("noLayer");
+      const card = document.getElementById("card");
+      const title = document.getElementById("title");
+      const subtitle = document.getElementById("subtitle");
+      const hint = document.getElementById("hint");
+
+      let noPresses = 0;
+
+      const noMessages = [
+        "no",
+        "are you sure??",
+        "don't click me!",
+        "try the other one",
+        "pls don't 🥺",
+        "that one is illegal",
+        "wrong answer!!!",
+      ];
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function placeNoButton(initial = false) {
+        // keep inside viewport with padding
+        const padding = 16;
+        const rect = noBtn.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        const maxLeft = vw - rect.width - padding;
+        const maxTop = vh - rect.height - padding;
+
+        // start near the card, then become chaotic
+        let left, top;
+
+        if (initial) {
+          // place roughly under the card center-ish
+          left = clamp(vw * 0.5 + rand(-70, 70), padding, maxLeft);
+          top = clamp(vh * 0.62 + rand(-30, 40), padding, maxTop);
+        } else {
+          // random anywhere, with a little preference away from the yes button region
+          left = clamp(rand(padding, maxLeft), padding, maxLeft);
+          top = clamp(rand(padding, maxTop), padding, maxTop);
+        }
+
+        noBtn.style.left = `${left}px`;
+        noBtn.style.top = `${top}px`;
+      }
+
+      function poofAt(x, y) {
+        const p = document.createElement("div");
+        p.className = "poof";
+        p.style.left = `${x}px`;
+        p.style.top = `${y}px`;
+        document.body.appendChild(p);
+        p.addEventListener("animationend", () => p.remove());
+      }
+
+      function updateNoText() {
+        // change message every 2–3 presses
+        const shouldChange =
+          noPresses === 1 || noPresses % 2 === 0 || noPresses % 3 === 0;
+
+        if (!shouldChange) return;
+
+        // cycle but keep "no" early
+        const idx = clamp(
+          Math.floor(noPresses / 2),
+          0,
+          noMessages.length - 1
+        );
+        noBtn.textContent = noMessages[idx];
+      }
+
+      function evade(e) {
+        noPresses++;
+
+        // poof at current center
+        const r = noBtn.getBoundingClientRect();
+        poofAt(r.left + r.width / 2, r.top + r.height / 2);
+
+        updateNoText();
+
+        // after ~8 presses, become extra dramatic
+        if (noPresses >= 8) {
+          noBtn.style.transform = `rotate(${rand(-6, 6)}deg) scale(${rand(
+            0.96,
+            1.04
+          )})`;
+          hint.textContent = "ok stop bullying the no button";
+        }
+
+        // after ~10 presses, vanish briefly
+        if (noPresses >= 10 && noPresses % 3 === 1) {
+          noBtn.style.opacity = "0";
+          setTimeout(() => {
+            noBtn.style.opacity = "1";
+          }, 600);
+        }
+
+        placeNoButton(false);
+
+        // never allow a real "no"
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // clicks + touch
+      noBtn.addEventListener("pointerdown", evade);
+
+      // also evade when the cursor gets too close (optional but cute)
+      // comment out if you want only click-based evasion
+      document.addEventListener("mousemove", (e) => {
+        const r = noBtn.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const dist = Math.hypot(dx, dy);
+
+        // gentle flee radius
+        if (dist < 70) {
+          placeNoButton(false);
+        }
+      });
+
+      yesBtn.addEventListener("click", () => {
+        card.classList.add("success");
+        title.textContent = "YAYAYAYAYYAYAYAYA!!!";
+        subtitle.textContent = "you just made me the happiest person ever";
+        hint.textContent = "valentine secured";
+        // retire the no button
+        noLayer.style.display = "none";
+      });
+
+      // initial placement after layout
+      window.addEventListener("load", () => placeNoButton(true));
+      window.addEventListener("resize", () => placeNoButton(true));
+    </script>
+  </body>
+</html>
