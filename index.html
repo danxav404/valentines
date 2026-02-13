@@ -105,7 +105,6 @@
         animation: pop 280ms ease-out both;
       }
 
-      /* subtle "paper edge" highlight */
       .card::before {
         content: "";
         position: absolute;
@@ -163,13 +162,12 @@
         text-transform: lowercase;
       }
 
+      /* buttons centered as a pair initially; after inline no disappears, yes centers automatically */
       .buttons {
         display: flex;
         gap: 12px;
         justify-content: center;
         margin-top: 10px;
-        position: relative;
-        z-index: 3; /* stay above hearts */
       }
 
       button {
@@ -202,6 +200,14 @@
         background: var(--pink-hover);
         box-shadow: 0 12px 30px rgba(255, 63, 118, 0.34);
         transform: translateY(-1px) scale(calc(var(--yesScale, 1) * 1.03));
+      }
+
+      /* inline no (initial only) */
+      .no-inline {
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
       }
 
       /* evasive no button layer */
@@ -261,40 +267,38 @@
   </head>
 
   <body>
-    <!-- dynamic heart background -->
     <div class="bg" id="bg" aria-hidden="true"></div>
 
     <div class="wrap">
       <main class="card" id="card">
         <div class="art">
-          <!-- put these next to this html:
-               cat.png, grumpycat.png, happycat.gif -->
           <img id="catImg" src="cat.png" alt="cute cat holding flowers" />
         </div>
 
-        <h1 id="title">will you be my valentine?</h1>
+        <h1 id="title">chrissy, will you be my valentine?</h1>
         <p id="subtitle">please choose wisely !</p>
 
-        <!-- ✅ now both buttons are in the card initially -->
-        <div class="buttons" id="btnRow">
+        <!-- ✅ inline no exists only at the start -->
+        <div class="buttons">
           <button class="yes" id="yesBtn" type="button">yes</button>
-          <button class="no" id="noBtnInline" type="button">no</button>
+          <button class="no-inline" id="noBtnInline" type="button">no</button>
         </div>
 
         <div class="tiny" id="hint">tip: the no button is shy</div>
       </main>
     </div>
 
-    <!-- floating layer for the evasive no button -->
-    <div class="no-layer" id="noLayer">
+    <!-- ✅ floating evasive no is hidden until first no click -->
+    <div class="no-layer" id="noLayer" style="display: none">
       <button class="no" id="noBtn" type="button">no</button>
     </div>
 
     <script>
       const yesBtn = document.getElementById("yesBtn");
-      const noBtn = document.getElementById("noBtn"); // floating evasive one
-      const noBtnInline = document.getElementById("noBtnInline"); // initial inline one
+      const noBtnInline = document.getElementById("noBtnInline");
       const noLayer = document.getElementById("noLayer");
+      const noBtn = document.getElementById("noBtn");
+
       const card = document.getElementById("card");
       const title = document.getElementById("title");
       const subtitle = document.getElementById("subtitle");
@@ -307,8 +311,8 @@
       let grumpyMode = false;
       let accepted = false;
 
-      // hover timer so it doesn't instantly block clicks
       let hoverTimer = null;
+      let handoffDone = false;
 
       const noMessages = [
         "no",
@@ -324,7 +328,6 @@
       function clamp(n, min, max) {
         return Math.max(min, Math.min(max, n));
       }
-
       function rand(min, max) {
         return Math.random() * (max - min) + min;
       }
@@ -342,8 +345,7 @@
         }, 260);
       }
 
-      // place the floating "no" button. initial placement puts it exactly where the inline one is.
-      function placeNoButton(initial = false) {
+      function placeNoButtonAtRect(r) {
         const padding = 16;
         const rect = noBtn.getBoundingClientRect();
         const vw = window.innerWidth;
@@ -352,17 +354,24 @@
         const maxLeft = vw - rect.width - padding;
         const maxTop = vh - rect.height - padding;
 
-        let left, top;
+        const left = clamp(r.left, padding, maxLeft);
+        const top = clamp(r.top, padding, maxTop);
 
-        if (initial) {
-          // position floating no exactly where the inline no is
-          const r = noBtnInline.getBoundingClientRect();
-          left = clamp(r.left, padding, maxLeft);
-          top = clamp(r.top, padding, maxTop);
-        } else {
-          left = clamp(rand(padding, maxLeft), padding, maxLeft);
-          top = clamp(rand(padding, maxTop), padding, maxTop);
-        }
+        noBtn.style.left = `${left}px`;
+        noBtn.style.top = `${top}px`;
+      }
+
+      function placeNoButtonRandom() {
+        const padding = 16;
+        const rect = noBtn.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        const maxLeft = vw - rect.width - padding;
+        const maxTop = vh - rect.height - padding;
+
+        const left = clamp(rand(padding, maxLeft), padding, maxLeft);
+        const top = clamp(rand(padding, maxTop), padding, maxTop);
 
         noBtn.style.left = `${left}px`;
         noBtn.style.top = `${top}px`;
@@ -408,53 +417,59 @@
         const wobble = noPresses >= 8 ? rand(-7, 7) : rand(-2, 2);
         noBtn.style.transform = `rotate(${wobble}deg)`;
 
-        placeNoButton(false);
+        placeNoButtonRandom();
 
         setTimeout(() => {
           noBtn.style.transform = "rotate(0deg)";
         }, 220);
       }
 
-      // ✅ when user clicks the INLINE no, immediately swap to the floating one at the same position
-      function handoffInlineNo(e) {
-        if (accepted) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        // hide inline button so it looks like it "escaped"
-        noBtnInline.style.visibility = "hidden";
-
-        // ensure floating one starts exactly there
-        placeNoButton(true);
-
-        // treat as a normal "no press"
+      function registerNoPress() {
         noPresses++;
         updateNoText();
         bumpYes();
         maybeGrumpy();
-
-        // then run away smoothly
-        evade("click");
-        return false;
       }
 
-      noBtnInline.addEventListener("pointerdown", handoffInlineNo);
+      // ✅ first-ever "no" click: remove inline, reveal floating at same spot, then flee
+      noBtnInline.addEventListener("pointerdown", (e) => {
+        if (accepted) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-      // click / tap on floating no: register, then move
+        if (!handoffDone) {
+          handoffDone = true;
+
+          const r = noBtnInline.getBoundingClientRect();
+
+          // remove inline no immediately (no clones)
+          noBtnInline.remove();
+
+          // show floating layer + align its no to where the inline was
+          noLayer.style.display = "block";
+          // small next-tick so layout updates after remove()
+          requestAnimationFrame(() => {
+            placeNoButtonAtRect(r);
+            registerNoPress();
+            evade("click");
+          });
+
+          return false;
+        }
+      });
+
+      // floating no presses (after handoff)
       noBtn.addEventListener("pointerdown", (e) => {
         if (accepted) return;
         e.preventDefault();
         e.stopPropagation();
 
-        noPresses++;
-        updateNoText();
-        bumpYes();
-        maybeGrumpy();
+        registerNoPress();
         evade("click");
         return false;
       });
 
-      // hover-based evasion with time limit (5s) - floating button only
+      // hover-based evasion with time limit (5s) - only after handoff exists
       noBtn.addEventListener("pointerenter", () => {
         if (accepted) return;
         if (hoverTimer) clearTimeout(hoverTimer);
@@ -515,7 +530,7 @@
 
         card.classList.add("success");
         title.textContent = "YAYAYYAYAYAYAYYAYAA 💐";
-        subtitle.textContent = "i love you so much :) happy v-day!!";
+        subtitle.textContent = "i love you so much ammus :) happy v-day!!";
         hint.textContent = "valentine secured 💌";
 
         swapCat("happycat.gif");
@@ -525,16 +540,11 @@
         noLayer.style.display = "none";
       });
 
-      // init
       window.addEventListener("load", () => {
-        // start floating "no" at the inline button position, but keep inline visible until first click
-        placeNoButton(true);
         makeHearts("🩷");
       });
 
       window.addEventListener("resize", () => {
-        // if inline is still visible, keep floating aligned with it
-        placeNoButton(true);
         makeHearts(accepted ? "🤍" : "🩷");
       });
     </script>
